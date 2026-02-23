@@ -5,13 +5,17 @@ const chatView = document.getElementById("chat-view");
 const usersList = document.getElementById("users-list");
 const logoutBtn = document.getElementById("logout-btn");
 
+if (!authView || !chatView || !usersList || !logoutBtn) {
+  console.error("Missing DOM elements – check ids: auth-view, chat-view, users-list, logout-btn");
+}
+
 function showAuthView() {
-  authView.classList.remove("hidden");
-  chatView.classList.add("hidden");
+  if (authView) authView.classList.remove("hidden");
+  if (chatView) chatView.classList.add("hidden");
 }
 function showChatView() {
-  authView.classList.add("hidden");
-  chatView.classList.remove("hidden");
+  if (authView) authView.classList.add("hidden");
+  if (chatView) chatView.classList.remove("hidden");
 }
 showAuthView();
 
@@ -66,23 +70,34 @@ logoutBtn.addEventListener("click", () => {
 
 let unsubscribeUsers = null;
 
-authService.onAuthStateChanged((user) => {
-  if (user) {
-    showChatView();
-    if (unsubscribeUsers) unsubscribeUsers();
-    unsubscribeUsers = authService.subscribeToUsers((users) => {
-      usersList.innerHTML = "";
-      users.forEach((u) => {
-        const li = document.createElement("li");
-        li.textContent = (u.displayName || "—") + " (" + (u.email || "") + ")";
-        usersList.appendChild(li);
-      });
-    });
-  } else {
-    if (unsubscribeUsers) {
-      unsubscribeUsers();
-      unsubscribeUsers = null;
+authService.setSessionPersistence().then(() => {
+  authService.onAuthStateChanged((user) => {
+    console.log("[Auth] onAuthStateChanged fired, user:", user ? user.email : null);
+    try {
+      if (user) {
+        showChatView();
+        if (unsubscribeUsers) unsubscribeUsers();
+        const currentUid = user.uid;
+        unsubscribeUsers = authService.subscribeToUsers((users) => {
+          if (!usersList) return;
+          usersList.innerHTML = "";
+          const others = users.filter((u) => u.uid !== currentUid);
+          others.forEach((u) => {
+            const li = document.createElement("li");
+            li.textContent = (u.displayName || "—") + " (" + (u.email || "") + ")";
+            usersList.appendChild(li);
+          });
+        });
+      } else {
+        if (unsubscribeUsers) {
+          unsubscribeUsers();
+          unsubscribeUsers = null;
+        }
+        showAuthView();
+      }
+    } catch (err) {
+      console.error("[Auth] Error in onAuthStateChanged:", err);
     }
-    showAuthView();
-  }
+  });
+  console.log("[Auth] Listener registered once (expected). You’ll see 'onAuthStateChanged fired' on load and on every login/logout.");
 });

@@ -1,12 +1,18 @@
 import { auth, db } from "../core/firebase.js";
-import { 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword, 
-  updateProfile 
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+  setPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { ref, set, onValue } from "firebase/database";
 
 export const authService = {
+
+  async setSessionPersistence() {
+    return setPersistence(auth, browserSessionPersistence);
+  },
 
   async signUp(email, password, displayName) {
     if (!email || !password || !displayName) {
@@ -60,11 +66,18 @@ export const authService = {
 
   subscribeToUsers(callback) {
     const usersRef = ref(db, 'users');
-    return onValue(usersRef, snapshot => {
-      const users = snapshot.val();
-      const usersArray = users ? Object.values(users) : [];
-      callback(usersArray);
-    });
+    return onValue(
+      usersRef,
+      (snapshot) => {
+        const users = snapshot.val();
+        const usersArray = users ? Object.values(users) : [];
+        callback(usersArray);
+      },
+      (error) => {
+        console.error('Error loading users (check Realtime Database rules):', error.message);
+        callback([]);
+      }
+    );
   }
 
 };
