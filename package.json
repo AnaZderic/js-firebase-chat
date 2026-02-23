@@ -1,0 +1,33 @@
+{
+  "dependencies": {
+    "firebase": "^12.9.0",
+    "firebase-admin": "^13.6.1",
+    "firebase-functions": "^7.0.5"
+  },
+  "name": "js-firebase-chat",
+  "version": "1.0.0",
+  "description": "Early-stage 1-to-1 chat app using Firebase.",
+  "main": "index.js",
+  "devDependencies": {
+    "webpack": "^5.105.2",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.3"
+  },
+  "scripts": {
+    "build": "webpack",
+    "dev": "webpack serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AnaZderic/js-firebase-chat.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/AnaZderic/js-firebase-chat/issues"
+  },
+  "homepage": "https://github.com/AnaZderic/js-firebase-chat#readme"
+}
