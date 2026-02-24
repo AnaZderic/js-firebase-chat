@@ -2,7 +2,21 @@
   "rules": {
     "users": {
       ".read": "auth != null",
-      ".write": "auth != null && auth.uid === $uid"
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    }, 
+      "conversations": {
+      "$cid": {
+        "participants": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        },
+        "messages": {
+          ".read": "auth != null && root.child('conversations').child($cid).child('participants').child(auth.uid).exists()",
+          ".write": "auth != null && root.child('conversations').child($cid).child('participants').child(auth.uid).exists()"
+        }
+      }
     }
   }
 }

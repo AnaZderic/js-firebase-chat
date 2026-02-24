@@ -31,9 +31,28 @@
     </div>
 
     <div id="chat-view" class="hidden chat-view">
-      <h3>Users List (Real-time)</h3>
-      <ul id="users-list"></ul>
-      <button id="logout-btn">Logout</button>
+      <div class="chat-layout">
+        <aside class="chat-sidebar">
+          <h3 class="chat-sidebar-title">Users</h3>
+          <ul id="users-list"></ul>
+          <button id="logout-btn" class="logout-btn-bottom">Logout</button>
+        </aside>
+        <main class="chat-main">
+          <div id="conversation-placeholder" class="conversation-placeholder">
+            Select a user to chat with.
+          </div>
+          <div id="conversation-panel" class="conversation-panel hidden">
+            <header class="conversation-header">
+              <h2 id="conversation-title" class="conversation-title">—</h2>
+            </header>
+            <ul id="messages-list" class="messages-list"></ul>
+            <form id="message-form" class="message-form">
+              <input type="text" id="message-input" class="message-input" placeholder="Message..." autocomplete="off" />
+              <button type="submit" class="btn btn-send">Send</button>
+            </form>
+          </div>
+        </main>
+      </div>
     </div>
   
     <script src="./dist/bundle.js"></script>
