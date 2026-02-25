@@ -1,5 +1,5 @@
 import { db } from "../core/firebase.js";
-import { ref, set, push, onValue } from "firebase/database";
+import { ref, set, push, onValue, query, orderByChild, startAt, get } from "firebase/database";
 
 export function getConversationId(uid1, uid2) {
   return [uid1, uid2].sort().join("_");
@@ -39,5 +39,26 @@ export const conversationService = {
       text: text.trim(),
       createdAt: Date.now(),
     });
+  },
+
+  async getMessageCountsLast24Hours(conversationId) {
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const messagesRef = ref(db, `conversations/${conversationId}/messages`);
+    const q = query(
+      messagesRef,
+      orderByChild("createdAt"),
+      startAt(cutoff)
+    );
+    const snapshot = await get(q);
+    const buckets = new Array(24).fill(0);
+    const hourMs = 60 * 60 * 1000;
+    snapshot.forEach((child) => {
+      const t = child.val().createdAt;
+      if (t == null) return;
+      const elapsed = t - cutoff;
+      const hourIndex = Math.min(23, Math.floor(elapsed / hourMs));
+      if (hourIndex >= 0) buckets[hourIndex]++;
+    });
+    return buckets;
   },
 };

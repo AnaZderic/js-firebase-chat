@@ -22,6 +22,7 @@ Simple real-time chat application built with:
 - Real-time users list
 - Only authenticated users can read users list
 - Users can modify only their own profile (via RTDB rules)
+- 💬 Messages icon per user to directly open private conversation
 
 ### 💬 Private 1-to-1 Conversations
 - Users can select another registered user to start a private chat
@@ -31,17 +32,20 @@ Simple real-time chat application built with:
 ### ⚡ Real-Time Messaging
 - Messages are sent and received instantly (no page reload)
 - Real-time updates using Firebase RTDB listners
-- Message hisotry persists in database
+- Message history persists in database
 - Messages use server timestamps
 - UI message alignment: 
     Right side → your messages
     Left side → messages from the other user
 
+### 📊 Messages Activity Chart
+- Chart displayed above the chat window
+- Shows number of messages per hour
+- Displays activity for the last 24 hours
+
 ---
 
 ### 🔜 Planned Improvements
-
-- Messages per hour chart (last 24h)
 
 - Online/offline presence
 
@@ -50,8 +54,6 @@ Simple real-time chat application built with:
 - UI/UX improvements
 
 - Firebase Hosting deployment
-
-- Further refactoring & service separation
 
 ## Project Structure
 
@@ -80,4 +82,6 @@ npm run dev
 ## 📌 Status
 
 - 🟢 Core real-time chat functionality implemented
-- 🟡 UI & advanced features in progress
+- 🟢 Message icon navigation added
+- 🟡 Chart real-time integration in progress
+- 🟡 Advanced real-time features in progress

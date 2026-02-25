@@ -5,14 +5,15 @@
       "$uid": {
         ".write": "auth != null && auth.uid === $uid"
       }
-    }, 
-      "conversations": {
+    },
+    "conversations": {
       "$cid": {
         "participants": {
           ".read": "auth != null",
           ".write": "auth != null"
         },
         "messages": {
+          ".indexOn": ["createdAt"],
           ".read": "auth != null && root.child('conversations').child($cid).child('participants').child(auth.uid).exists()",
           ".write": "auth != null && root.child('conversations').child($cid).child('participants').child(auth.uid).exists()"
         }
