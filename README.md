@@ -31,7 +31,7 @@ Simple real-time chat application built with:
 
 ### ⚡ Real-Time Messaging
 - Messages are sent and received instantly (no page reload)
-- Real-time updates using Firebase RTDB listners
+- Real-time updates using Firebase RTDB listeners
 - Message history persists in database
 - Messages use server timestamps
 - UI message alignment: 
@@ -42,14 +42,18 @@ Simple real-time chat application built with:
 - Chart displayed above the chat window
 - Shows number of messages per hour
 - Displays activity for the last 24 hours
+- X-axis now displays the last 24 hours in real chronological order (hour-by-hour backwards from current time)
+- Chart updates in real time
 
 ---
 
 ### 🔜 Planned Improvements
 
-- Online/offline presence
+- Date separators between messages
 
 - Typing indicator
+
+- Online/offline presence
 
 - UI/UX improvements
 
@@ -64,7 +68,6 @@ Simple real-time chat application built with:
 ├── src/
 │ ├── core/
 │ ├── services/
-│ ├── utils/
 │ └── app.js 
 ├── index.html 
 
@@ -83,5 +86,5 @@ npm run dev
 
 - 🟢 Core real-time chat functionality implemented
 - 🟢 Message icon navigation added
-- 🟡 Chart real-time integration in progress
-- 🟡 Advanced real-time features in progress
+- 🟢 Chart real-time implemented
+- 🔜 Planned feature extensions and refinements

@@ -3,6 +3,7 @@ import { authService } from "./services/authService.js";
 import {
   conversationService,
   getConversationId,
+  getMessageCountsFromMessages,
 } from "./services/conversationService.js";
 
 const authView = document.getElementById("auth-view");
@@ -80,6 +81,8 @@ logoutBtn.addEventListener("click", () => {
 
 let unsubscribeUsers = null;
 let unsubscribeMessages = null;
+let chartRefreshIntervalId = null;
+let lastMessagesForChart = [];
 let currentUser = null;
 let selectedUser = null;
 let currentOthers = [];
@@ -93,6 +96,10 @@ function openConversation(otherUser) {
   if (conversationTitle) conversationTitle.textContent = otherUser.displayName || otherUser.email || "User";
 
   if (unsubscribeMessages) unsubscribeMessages();
+  if (chartRefreshIntervalId) {
+    clearInterval(chartRefreshIntervalId);
+    chartRefreshIntervalId = null;
+  }
   if (conversationChartContainer) {
     if (conversationChartContainer._chart) {
       conversationChartContainer._chart.destroy();
@@ -105,6 +112,7 @@ function openConversation(otherUser) {
   conversationService.ensureConversation(cid, currentUser.uid, otherUser.uid).then(() => {
     unsubscribeMessages = conversationService.subscribeToMessages(cid, (messages) => {
       if (!messagesList) return;
+      lastMessagesForChart = messages;
       messagesList.innerHTML = "";
       messages.forEach((msg) => {
         const li = document.createElement("li");
@@ -116,8 +124,17 @@ function openConversation(otherUser) {
         messagesList.appendChild(li);
       });
       messagesList.scrollTop = messagesList.scrollHeight;
+      if (conversationChartContainer) {
+        const { counts, labels } = getMessageCountsFromMessages(messages);
+        renderMessageChart(conversationChartContainer, counts, labels);
+      }
+      if (chartRefreshIntervalId) clearInterval(chartRefreshIntervalId);
+      chartRefreshIntervalId = setInterval(() => {
+        if (!conversationChartContainer || !lastMessagesForChart) return;
+        const { counts, labels } = getMessageCountsFromMessages(lastMessagesForChart);
+        renderMessageChart(conversationChartContainer, counts, labels);
+      }, 60000);
     });
-    fetchAndRenderMessageChart(cid, conversationChartContainer);
   });
 }
 
@@ -127,7 +144,7 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-function renderMessageChart(containerEl, counts) {
+function renderMessageChart(containerEl, counts, labels) {
   if (!containerEl || !Array.isArray(counts)) return;
   if (containerEl._chart) {
     containerEl._chart.destroy();
@@ -139,11 +156,11 @@ function renderMessageChart(containerEl, counts) {
   canvas.setAttribute("role", "img");
   canvas.setAttribute("aria-label", "Messages per hour (24h)");
   containerEl.appendChild(canvas);
-  const labels = counts.map((_, i) => `${i}h`);
+  const xLabels = Array.isArray(labels) && labels.length === 24 ? labels : counts.map((_, i) => `${i}h`);
   const chart = new Chart(canvas, {
     type: "bar",
     data: {
-      labels,
+      labels: xLabels,
       datasets: [{
         label: "Messages",
         data: counts,
@@ -159,6 +176,12 @@ function renderMessageChart(containerEl, counts) {
         legend: { display: false },
         tooltip: {
           callbacks: {
+            title: (items) => {
+              const h = items[0]?.label;
+              if (h === undefined) return "";
+              const hh = String(h).padStart(2, "0");
+              return `${hh}:00–${String((Number(h) + 1) % 24).padStart(2, "0")}:00`;
+            },
             label: (ctx) => `${ctx.raw} message(s)`,
           },
         },
@@ -166,8 +189,8 @@ function renderMessageChart(containerEl, counts) {
       scales: {
         x: {
           display: true,
-          title: { display: true, text: "Hour (last 24h)", font: { size: 11 } },
-          ticks: { maxRotation: 0, maxTicksLimit: 12, font: { size: 10 } },
+          title: { display: true, text: "Hour (clock, last 24h)", font: { size: 11 } },
+          ticks: { maxRotation: 0, maxTicksLimit: 24, autoSkip: false, font: { size: 9 } },
         },
         y: {
           display: true,
@@ -179,24 +202,6 @@ function renderMessageChart(containerEl, counts) {
     },
   });
   containerEl._chart = chart;
-}
-
-function fetchAndRenderMessageChart(conversationId, containerEl) {
-  if (!containerEl) return;
-  if (containerEl._chart) {
-    containerEl._chart.destroy();
-    containerEl._chart = null;
-  }
-  containerEl.innerHTML = "";
-  containerEl.className = "conversation-chart-container conversation-chart-loading";
-  conversationService.getMessageCountsLast24Hours(conversationId).then((counts) => {
-    if (!containerEl.isConnected) return;
-    renderMessageChart(containerEl, counts);
-  }).catch(() => {
-    if (!containerEl.isConnected) return;
-    containerEl.className = "conversation-chart-container conversation-chart-error";
-    containerEl.textContent = "Unable to load chart";
-  });
 }
 
 if (usersList) {
@@ -239,6 +244,10 @@ authService.setSessionPersistence().then(() => {
           unsubscribeMessages();
           unsubscribeMessages = null;
         }
+        if (chartRefreshIntervalId) {
+          clearInterval(chartRefreshIntervalId);
+          chartRefreshIntervalId = null;
+        }
         selectedUser = null;
         if (conversationPanel) conversationPanel.classList.add("hidden");
         if (conversationPlaceholder) conversationPlaceholder.classList.remove("hidden");
@@ -273,6 +282,10 @@ authService.setSessionPersistence().then(() => {
         if (unsubscribeMessages) {
           unsubscribeMessages();
           unsubscribeMessages = null;
+        }
+        if (chartRefreshIntervalId) {
+          clearInterval(chartRefreshIntervalId);
+          chartRefreshIntervalId = null;
         }
         if (unsubscribeUsers) {
           unsubscribeUsers();

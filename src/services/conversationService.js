@@ -1,8 +1,39 @@
 import { db } from "../core/firebase.js";
-import { ref, set, push, onValue, query, orderByChild, startAt, get } from "firebase/database";
+import { ref, set, push, onValue, serverTimestamp } from "firebase/database";
 
 export function getConversationId(uid1, uid2) {
   return [uid1, uid2].sort().join("_");
+}
+
+const HOUR_MS = 60 * 60 * 1000;
+
+export function getMessageCountsFromMessages(messages) {
+  const now = Date.now();
+  const base = new Date(now);
+  base.setMinutes(0, 0, 0);
+  base.setSeconds(0, 0);
+  base.setMilliseconds(0);
+  const baseMs = base.getTime();
+  const windowEnd = baseMs + HOUR_MS;
+  const windowStart = windowEnd - 24 * HOUR_MS;
+
+  const bucketStarts = Array.from({ length: 24 }, (_, i) => windowStart + i * HOUR_MS);
+  const bucketEnds = bucketStarts.map((start) => start + HOUR_MS);
+
+  const counts = new Array(24).fill(0);
+  (messages || []).forEach((msg) => {
+    const t = msg.createdAt;
+    if (t == null || t < windowStart || t >= windowEnd) return;
+    for (let i = 0; i < 24; i++) {
+      if (t >= bucketStarts[i] && t < bucketEnds[i]) {
+        counts[i]++;
+        break;
+      }
+    }
+  });
+
+  const labels = bucketStarts.map((ms) => String(new Date(ms).getHours()));
+  return { counts, labels };
 }
 
 export const conversationService = {
@@ -37,28 +68,8 @@ export const conversationService = {
     await set(newRef, {
       senderId,
       text: text.trim(),
-      createdAt: Date.now(),
+      createdAt: serverTimestamp(),
     });
   },
 
-  async getMessageCountsLast24Hours(conversationId) {
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-    const messagesRef = ref(db, `conversations/${conversationId}/messages`);
-    const q = query(
-      messagesRef,
-      orderByChild("createdAt"),
-      startAt(cutoff)
-    );
-    const snapshot = await get(q);
-    const buckets = new Array(24).fill(0);
-    const hourMs = 60 * 60 * 1000;
-    snapshot.forEach((child) => {
-      const t = child.val().createdAt;
-      if (t == null) return;
-      const elapsed = t - cutoff;
-      const hourIndex = Math.min(23, Math.floor(elapsed / hourMs));
-      if (hourIndex >= 0) buckets[hourIndex]++;
-    });
-    return buckets;
-  },
 };

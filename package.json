@@ -8,7 +8,6 @@
   "name": "js-firebase-chat",
   "version": "1.0.0",
   "description": "Early-stage 1-to-1 chat app using Firebase.",
-  "main": "index.js",
   "devDependencies": {
     "webpack": "^5.105.2",
     "webpack-cli": "^6.0.1",

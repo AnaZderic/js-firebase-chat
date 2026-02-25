@@ -9,8 +9,8 @@
     "conversations": {
       "$cid": {
         "participants": {
-          ".read": "auth != null",
-          ".write": "auth != null"
+          ".read": "auth != null && data.child(auth.uid).exists()",
+          ".write": "auth != null && newData.child(auth.uid).exists()"
         },
         "messages": {
           ".indexOn": ["createdAt"],
