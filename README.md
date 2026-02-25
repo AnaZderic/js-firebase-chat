@@ -45,11 +45,14 @@ Simple real-time chat application built with:
 - X-axis now displays the last 24 hours in real chronological order (hour-by-hour backwards from current time)
 - Chart updates in real time
 
+### 📅 Date separators
+- Date labels between messages
+- Shows "Today", "Yesterday", or the full date (e.g. Feb 23, 2025)
+- Horizontal line above each label
+
 ---
 
 ### 🔜 Planned Improvements
-
-- Date separators between messages
 
 - Typing indicator
 

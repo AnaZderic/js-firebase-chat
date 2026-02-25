@@ -114,12 +114,33 @@ function openConversation(otherUser) {
       if (!messagesList) return;
       lastMessagesForChart = messages;
       messagesList.innerHTML = "";
+      let lastDayStart = null;
       messages.forEach((msg) => {
+        const t = msg.createdAt;
+        const d = t != null ? new Date(t) : null;
+        const dayStart = d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() : null;
+        if (dayStart !== null && dayStart !== lastDayStart) {
+          lastDayStart = dayStart;
+          const label = getDateSeparatorLabel(t);
+          if (label) {
+            const sep = document.createElement("li");
+            sep.className = "message-date-separator";
+            sep.setAttribute("aria-hidden", "true");
+            const hr = document.createElement("hr");
+            hr.className = "message-date-separator-line";
+            const span = document.createElement("span");
+            span.className = "message-date-separator-text";
+            span.textContent = label;
+            sep.appendChild(hr);
+            sep.appendChild(span);
+            messagesList.appendChild(sep);
+          }
+        }
         const li = document.createElement("li");
         const isMe = msg.senderId === currentUser.uid;
         li.className = "message-item " + (isMe ? "message-mine" : "message-theirs");
         const name = isMe ? "You" : (selectedUser.displayName || selectedUser.email || "—");
-        const time = msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "";
+        const time = t ? new Date(t).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }) : "";
         li.innerHTML = `<span class="message-sender">${escapeHtml(name)}</span> <span class="message-time">${escapeHtml(time)}</span><br/><span class="message-text">${escapeHtml(msg.text || "")}</span>`;
         messagesList.appendChild(li);
       });
@@ -136,6 +157,18 @@ function openConversation(otherUser) {
       }, 60000);
     });
   });
+}
+
+function getDateSeparatorLabel(ts) {
+  if (ts == null) return null;
+  const d = new Date(ts);
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const yesterdayStart = todayStart - 24 * 60 * 60 * 1000;
+  const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  if (dayStart === todayStart) return "Today";
+  if (dayStart === yesterdayStart) return "Yesterday";
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
 function escapeHtml(text) {

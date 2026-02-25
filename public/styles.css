@@ -364,6 +364,29 @@ body {
   gap: var(--space-xs);
 }
 
+.message-date-separator {
+  list-style: none;
+  margin: var(--space-sm) 0;
+  padding: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.message-date-separator-line {
+  border: none;
+  height: 1px;
+  background: rgba(192, 202, 245, 0.35);
+  margin: 0 0 var(--space-xs) 0;
+}
+
+.message-date-separator-text {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #565f89;
+}
+
 .message-item {
   max-width: 80%;
   padding: var(--space-xs) var(--space-sm);
